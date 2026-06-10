@@ -11,5 +11,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ChangeRoleRequest {
 
-    private Long roleID;
+    private Long roleId;
 }

@@ -95,6 +95,8 @@ public class UserServiceImplementation implements UserService {
         if (user.isEmpty()) throw new RuntimeException("User not found");
         if (updateUserRequest.getName() != null) user.get().setName(updateUserRequest.getName());
         if (updateUserRequest.getEmail() != null) user.get().setEmail(updateUserRequest.getEmail());
+        if (updateUserRequest.getName() == null && updateUserRequest.getEmail() == null)
+            throw new RuntimeException("No fields to update");
         User modifiedUser = userRepository.saveAndFlush(user.get());
 
         return UserMapper.toUserResponse(modifiedUser);
@@ -118,7 +120,7 @@ public class UserServiceImplementation implements UserService {
     public UserResponse changeRole(Long id, ChangeRoleRequest changeRoleRequest) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new RuntimeException("User not found");
-        Optional<Role> role = roleRepository.findById(changeRoleRequest.getRoleID());
+        Optional<Role> role = roleRepository.findById(changeRoleRequest.getRoleId());
         if (role.isEmpty()) throw new RuntimeException("Role not found");
         user.get().setRole(role.get());
         User modifiedUser = userRepository.saveAndFlush(user.get());
