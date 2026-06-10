@@ -1,8 +1,6 @@
 package com.dnhmd.user_management.service.implementation;
 
-import com.dnhmd.user_management.dto.CreateUserRequest;
-import com.dnhmd.user_management.dto.PagedResponse;
-import com.dnhmd.user_management.dto.UserResponse;
+import com.dnhmd.user_management.dto.*;
 import com.dnhmd.user_management.entity.Role;
 import com.dnhmd.user_management.entity.User;
 import com.dnhmd.user_management.mapper.UserMapper;
@@ -26,7 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserServiceImplementation implements UserService {
 
-    String DEFAULT_ROLE = "USER";
+    private static final String DEFAULT_ROLE = "USER";
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -54,24 +52,24 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public Optional<UserResponse> getUser(Long id) {
-        if (!userRepository.existsById(id)) throw new RuntimeException("User not found");
+    public UserResponse getUser(Long id) {
         Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) throw new RuntimeException("User not found");
 
-        return user.map(UserMapper::toUserResponse);
+        return UserMapper.toUserResponse(user.get());
     }
 
     @Override
-    public Optional<UserResponse> getUserByEmail(String email) {
-        Optional<User> user = userRepository.findUserByEmail(email);
+    public UserResponse getUserByEmail(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) throw new RuntimeException("User not found");
 
-        return user.map(UserMapper::toUserResponse);
+        return UserMapper.toUserResponse(user.get());
     }
 
     @Override
     public UserResponse createUser(CreateUserRequest createUserRequest) {
-        if ((userRepository.findUserByEmail(createUserRequest.getEmail())).isPresent())
+        if ((userRepository.findByEmail(createUserRequest.getEmail())).isPresent())
             throw new RuntimeException("Email already in use");
         Role defaultRole = roleRepository.findRoleByName(DEFAULT_ROLE).orElseThrow(
                 () -> new RuntimeException("Default role not found")
@@ -92,24 +90,24 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public UserResponse updateUser(Long id, String name, String email) {
+    public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new RuntimeException("User not found");
-        if (name != null) user.get().setName(name);
-        if (email != null) user.get().setEmail(email);
+        if (updateUserRequest.getName() != null) user.get().setName(updateUserRequest.getName());
+        if (updateUserRequest.getEmail() != null) user.get().setEmail(updateUserRequest.getEmail());
         User modifiedUser = userRepository.saveAndFlush(user.get());
 
         return UserMapper.toUserResponse(modifiedUser);
     }
 
     @Override
-    public UserResponse changePassword(Long id, String oldPassword, String newPassword) {
+    public UserResponse changePassword(Long id, ChangePasswordRequest changePasswordRequest) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new RuntimeException("User not found");
-        if (!isPasswordVerified(oldPassword, user.get().getHashedPassword()))
+        if (!isPasswordVerified(changePasswordRequest.getOldPassword(), user.get().getHashedPassword()))
             throw new RuntimeException("Entered password is wrong.");
 
-        String hashedNewPassword = passwordEncoder.encode(newPassword);
+        String hashedNewPassword = passwordEncoder.encode(changePasswordRequest.getNewPassword());
         user.get().setHashedPassword(hashedNewPassword);
         User modifiedUser = userRepository.saveAndFlush(user.get());
 
@@ -117,10 +115,10 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public UserResponse changeRole(Long id, Long roleId) {
+    public UserResponse changeRole(Long id, ChangeRoleRequest changeRoleRequest) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new RuntimeException("User not found");
-        Optional<Role> role = roleRepository.findById(roleId);
+        Optional<Role> role = roleRepository.findById(changeRoleRequest.getRoleID());
         if (role.isEmpty()) throw new RuntimeException("Role not found");
         user.get().setRole(role.get());
         User modifiedUser = userRepository.saveAndFlush(user.get());
