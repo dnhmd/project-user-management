@@ -3,6 +3,10 @@ package com.dnhmd.user_management.service.implementation;
 import com.dnhmd.user_management.dto.*;
 import com.dnhmd.user_management.entity.Role;
 import com.dnhmd.user_management.entity.User;
+import com.dnhmd.user_management.exception.BadRequestException;
+import com.dnhmd.user_management.exception.ConflictException;
+import com.dnhmd.user_management.exception.ResourceNotFoundException;
+import com.dnhmd.user_management.exception.UnauthorizedException;
 import com.dnhmd.user_management.mapper.UserMapper;
 import com.dnhmd.user_management.repository.RoleRepository;
 import com.dnhmd.user_management.repository.UserRepository;
@@ -54,7 +58,7 @@ public class UserServiceImplementation implements UserService {
     @Override
     public UserResponse getUser(Long id) {
         Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()) throw new RuntimeException("User not found");
+        if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
 
         return UserMapper.toUserResponse(user.get());
     }
@@ -62,7 +66,7 @@ public class UserServiceImplementation implements UserService {
     @Override
     public UserResponse getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) throw new RuntimeException("User not found");
+        if (user.isEmpty()) throw new ResourceNotFoundException("User", email);
 
         return UserMapper.toUserResponse(user.get());
     }
@@ -70,7 +74,7 @@ public class UserServiceImplementation implements UserService {
     @Override
     public UserResponse createUser(CreateUserRequest createUserRequest) {
         if ((userRepository.findByEmail(createUserRequest.getEmail())).isPresent())
-            throw new RuntimeException("Email already in use");
+            throw new ConflictException("Email already in use");
         Role defaultRole = roleRepository.findRoleByName(DEFAULT_ROLE).orElseThrow(
                 () -> new RuntimeException("Default role not found")
         );
@@ -92,11 +96,11 @@ public class UserServiceImplementation implements UserService {
     @Override
     public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest) {
         Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()) throw new RuntimeException("User not found");
+        if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
         if (updateUserRequest.getName() != null) user.get().setName(updateUserRequest.getName());
         if (updateUserRequest.getEmail() != null) user.get().setEmail(updateUserRequest.getEmail());
         if (updateUserRequest.getName() == null && updateUserRequest.getEmail() == null)
-            throw new RuntimeException("No fields to update");
+            throw new BadRequestException("No fields to update");
         User modifiedUser = userRepository.saveAndFlush(user.get());
 
         return UserMapper.toUserResponse(modifiedUser);
@@ -105,9 +109,9 @@ public class UserServiceImplementation implements UserService {
     @Override
     public UserResponse changePassword(Long id, ChangePasswordRequest changePasswordRequest) {
         Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()) throw new RuntimeException("User not found");
+        if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
         if (!isPasswordVerified(changePasswordRequest.getOldPassword(), user.get().getHashedPassword()))
-            throw new RuntimeException("Entered password is wrong.");
+            throw new UnauthorizedException("Entered password is wrong");
 
         String hashedNewPassword = passwordEncoder.encode(changePasswordRequest.getNewPassword());
         user.get().setHashedPassword(hashedNewPassword);
@@ -119,9 +123,9 @@ public class UserServiceImplementation implements UserService {
     @Override
     public UserResponse changeRole(Long id, ChangeRoleRequest changeRoleRequest) {
         Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()) throw new RuntimeException("User not found");
+        if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
         Optional<Role> role = roleRepository.findById(changeRoleRequest.getRoleId());
-        if (role.isEmpty()) throw new RuntimeException("Role not found");
+        if (role.isEmpty()) throw new ResourceNotFoundException("Role", id.toString());
         user.get().setRole(role.get());
         User modifiedUser = userRepository.saveAndFlush(user.get());
 
@@ -131,7 +135,7 @@ public class UserServiceImplementation implements UserService {
     @Override
     public UserResponse deleteUser(Long id) {
         Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()) throw new RuntimeException("User not found");
+        if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
         user.get().setIsActive(false);
         User deletedUser = userRepository.saveAndFlush(user.get());
 

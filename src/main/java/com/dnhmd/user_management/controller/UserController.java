@@ -3,6 +3,7 @@ package com.dnhmd.user_management.controller;
 import com.dnhmd.user_management.dto.*;
 import com.dnhmd.user_management.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -57,9 +58,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public UserResponse deleteUser(
-            @PathVariable Long id
-    ) {
-        return userService.deleteUser(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }
