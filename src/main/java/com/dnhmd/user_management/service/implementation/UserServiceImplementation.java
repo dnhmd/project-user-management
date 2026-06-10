@@ -3,7 +3,10 @@ package com.dnhmd.user_management.service.implementation;
 import com.dnhmd.user_management.dto.CreateUserRequest;
 import com.dnhmd.user_management.dto.PagedResponse;
 import com.dnhmd.user_management.dto.UserResponse;
+import com.dnhmd.user_management.entity.Role;
 import com.dnhmd.user_management.entity.User;
+import com.dnhmd.user_management.mapper.UserMapper;
+import com.dnhmd.user_management.repository.RoleRepository;
 import com.dnhmd.user_management.repository.UserRepository;
 import com.dnhmd.user_management.service.UserService;
 import jakarta.persistence.criteria.Predicate;
@@ -12,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,7 +26,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserServiceImplementation implements UserService {
 
+    String DEFAULT_ROLE = "USER";
+
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public PagedResponse<UserResponse> getUsers(Integer page, Integer limit, String name, Boolean isActive) {
@@ -36,7 +44,7 @@ public class UserServiceImplementation implements UserService {
         Page<User> userPage = userRepository.findAll(userSpecification, pageable);
 
         return new PagedResponse<>(
-                userPage.getContent(),
+                userPage.getContent().stream().map(UserMapper::toUserResponse).toList(),
                 userPage.getNumber(),
                 userPage.getTotalPages(),
                 userPage.getTotalElements(),
@@ -47,46 +55,90 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public Optional<UserResponse> getUser(Long id) {
+        if (!userRepository.existsById(id)) throw new RuntimeException("User not found");
         Optional<User> user = userRepository.findById(id);
+
+        return user.map(UserMapper::toUserResponse);
     }
 
     @Override
     public Optional<UserResponse> getUserByEmail(String email) {
         Optional<User> user = userRepository.findUserByEmail(email);
-        if (user.isEmpty()) {
-            return
-        }
-        return UserResponse(
-                user.get().getId(),
-                user.get().getName(),
-                user.get().getEmail(),
-                user.get().getIsActive(),
-                user.get().
+        if (user.isEmpty()) throw new RuntimeException("User not found");
+
+        return user.map(UserMapper::toUserResponse);
+    }
+
+    @Override
+    public UserResponse createUser(CreateUserRequest createUserRequest) {
+        if ((userRepository.findUserByEmail(createUserRequest.getEmail())).isPresent())
+            throw new RuntimeException("Email already in use");
+        Role defaultRole = roleRepository.findRoleByName(DEFAULT_ROLE).orElseThrow(
+                () -> new RuntimeException("Default role not found")
         );
+        String hashedPassword = passwordEncoder.encode(createUserRequest.getPassword());
+
+        User savedUser = userRepository.saveAndFlush(
+                User.builder()
+                        .name(createUserRequest.getName())
+                        .email(createUserRequest.getEmail())
+                        .hashedPassword(hashedPassword)
+                        .isActive(true)
+                        .role(defaultRole)
+                        .build()
+        );
+
+        return UserMapper.toUserResponse(savedUser);
     }
 
     @Override
-    public UserResponse createUser(CreateUserRequest) {
-        return null;
+    public UserResponse updateUser(Long id, String name, String email) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) throw new RuntimeException("User not found");
+        if (name != null) user.get().setName(name);
+        if (email != null) user.get().setEmail(email);
+        User modifiedUser = userRepository.saveAndFlush(user.get());
+
+        return UserMapper.toUserResponse(modifiedUser);
     }
 
     @Override
-    public Optional<User> updateUser(Long id, String name, String email) {
-        return Optional.empty();
+    public UserResponse changePassword(Long id, String oldPassword, String newPassword) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) throw new RuntimeException("User not found");
+        if (!isPasswordVerified(oldPassword, user.get().getHashedPassword()))
+            throw new RuntimeException("Entered password is wrong.");
+
+        String hashedNewPassword = passwordEncoder.encode(newPassword);
+        user.get().setHashedPassword(hashedNewPassword);
+        User modifiedUser = userRepository.saveAndFlush(user.get());
+
+        return UserMapper.toUserResponse(modifiedUser);
     }
 
     @Override
-    public Optional<User> changePassword(Long id, String oldPassword, String newPassword) {
-        return Optional.empty();
+    public UserResponse changeRole(Long id, Long roleId) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) throw new RuntimeException("User not found");
+        Optional<Role> role = roleRepository.findById(roleId);
+        if (role.isEmpty()) throw new RuntimeException("Role not found");
+        user.get().setRole(role.get());
+        User modifiedUser = userRepository.saveAndFlush(user.get());
+
+        return UserMapper.toUserResponse(modifiedUser);
     }
 
     @Override
-    public Optional<User> changeRole(Long id, Integer roleId) {
-        return Optional.empty();
+    public UserResponse deleteUser(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) throw new RuntimeException("User not found");
+        user.get().setIsActive(false);
+        User deletedUser = userRepository.saveAndFlush(user.get());
+
+        return UserMapper.toUserResponse(deletedUser);
     }
 
-    @Override
-    public Optional<User> deleteUser(Long id) {
-        return Optional.empty();
+    private Boolean isPasswordVerified(String providedPassword, String currentPassword) {
+        return passwordEncoder.matches(providedPassword, currentPassword);
     }
 }
