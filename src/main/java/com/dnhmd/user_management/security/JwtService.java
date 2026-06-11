@@ -35,6 +35,10 @@ public class JwtService {
                 .compact();
     }
 
+    public String generatePasswordResetToken() {
+        return UUID.randomUUID().toString();
+    }
+
     public String generateRefreshToken() {
         return UUID.randomUUID().toString();
     }

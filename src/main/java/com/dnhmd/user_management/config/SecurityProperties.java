@@ -15,4 +15,5 @@ public class SecurityProperties {
     private Integer accessTokenExpireMinutes;
     private String algorithm;
     private Integer passwordResetTokenExpireMinutes;
+    private Integer refreshTokenExpireDays;
 }

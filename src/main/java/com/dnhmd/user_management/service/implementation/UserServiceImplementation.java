@@ -6,7 +6,6 @@ import com.dnhmd.user_management.entity.User;
 import com.dnhmd.user_management.exception.BadRequestException;
 import com.dnhmd.user_management.exception.ConflictException;
 import com.dnhmd.user_management.exception.ResourceNotFoundException;
-import com.dnhmd.user_management.exception.UnauthorizedException;
 import com.dnhmd.user_management.mapper.UserMapper;
 import com.dnhmd.user_management.repository.RoleRepository;
 import com.dnhmd.user_management.repository.UserRepository;
@@ -111,7 +110,7 @@ public class UserServiceImplementation implements UserService {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
         if (!isPasswordVerified(changePasswordRequest.getOldPassword(), user.get().getHashedPassword()))
-            throw new UnauthorizedException("Entered password is wrong");
+            throw new BadRequestException("Invalid credentials");
 
         String hashedNewPassword = passwordEncoder.encode(changePasswordRequest.getNewPassword());
         user.get().setHashedPassword(hashedNewPassword);
