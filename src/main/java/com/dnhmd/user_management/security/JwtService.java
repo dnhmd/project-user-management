@@ -1,7 +1,6 @@
 package com.dnhmd.user_management.security;
 
 import com.dnhmd.user_management.config.SecurityProperties;
-import com.dnhmd.user_management.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -21,13 +20,13 @@ public class JwtService {
 
     private final SecurityProperties securityProperties;
 
-    public String generateAccessToken(User user) {
+    public String generateAccessToken(String userEmail) {
         HashMap<String, Object> claims = new HashMap<>();
         claims.put("type", "access");
 
         return Jwts.builder()
                 .claims(claims)
-                .subject(user.getEmail())
+                .subject(userEmail)
                 .issuer("Private Server")
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis()
