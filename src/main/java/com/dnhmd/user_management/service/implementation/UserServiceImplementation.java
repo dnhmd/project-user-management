@@ -133,13 +133,13 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public UserResponse deleteUser(Long id) {
+    public void deleteUser(Long id) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
         user.get().setIsActive(false);
         User deletedUser = userRepository.saveAndFlush(user.get());
 
-        return UserMapper.toUserResponse(deletedUser);
+        UserMapper.toUserResponse(deletedUser);
     }
 
     private Boolean isPasswordVerified(String providedPassword, String currentPassword) {

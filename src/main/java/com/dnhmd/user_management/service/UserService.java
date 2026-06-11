@@ -11,5 +11,5 @@ public interface UserService {
     UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest);
     UserResponse changePassword(Long id, ChangePasswordRequest changePasswordRequest);
     UserResponse changeRole(Long id, ChangeRoleRequest changeRoleRequest);
-    UserResponse deleteUser(Long id);
+    void deleteUser(Long id);
 }
