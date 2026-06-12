@@ -21,7 +21,7 @@ public class User {
     private String email;
     @Column(name = "hashed_password")
     private String hashedPassword;
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
     @Column(name = "is_active")
     private Boolean isActive;

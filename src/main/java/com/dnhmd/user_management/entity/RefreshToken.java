@@ -21,7 +21,7 @@ public class RefreshToken {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
