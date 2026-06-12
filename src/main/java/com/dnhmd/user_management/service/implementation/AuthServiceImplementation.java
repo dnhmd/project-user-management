@@ -16,6 +16,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -33,6 +34,7 @@ public class AuthServiceImplementation implements AuthService {
     private final UserService userService;
 
     @Override
+    @Transactional
     public TokenResponse register(RegisterRequest registerRequest) {
         CreateUserRequest createUserRequest = new CreateUserRequest(
                 registerRequest.getName(),
@@ -58,6 +60,7 @@ public class AuthServiceImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public TokenResponse login(LoginRequest loginRequest) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(),
@@ -81,6 +84,7 @@ public class AuthServiceImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public TokenResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
         RefreshToken currentRefreshToken = refreshTokenRepository.findByToken(refreshTokenRequest.getRefreshToken())
                 .orElseThrow(() -> new ResourceNotFoundException("Refresh token", refreshTokenRequest.getRefreshToken()));
@@ -102,6 +106,7 @@ public class AuthServiceImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public MessageResponse forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
         Optional<User> user = userRepository.findByEmail(forgotPasswordRequest.getEmail());
         if (user.isPresent()) {
@@ -116,6 +121,7 @@ public class AuthServiceImplementation implements AuthService {
     }
 
     @Override
+    @Transactional
     public MessageResponse resetPassword(ResetPasswordRequest resetPasswordRequest) {
         String passwordResetToken = resetPasswordRequest.getToken();
         User user = userRepository.findByPasswordResetToken(passwordResetToken)

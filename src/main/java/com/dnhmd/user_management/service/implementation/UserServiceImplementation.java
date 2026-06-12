@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,7 @@ public class UserServiceImplementation implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public PagedResponse<UserResponse> getUsers(Integer page, Integer limit, String name, Boolean isActive) {
         Pageable pageable = PageRequest.of(page, limit);
         Specification<User> userSpecification = (root, query, criteriaBuilder) -> {
@@ -55,6 +57,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponse getUser(Long id) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
@@ -63,6 +66,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponse getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", email);
@@ -71,6 +75,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponse createUser(CreateUserRequest createUserRequest) {
         if ((userRepository.findByEmail(createUserRequest.getEmail())).isPresent())
             throw new ConflictException("Email already in use");
@@ -93,6 +98,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
@@ -106,6 +112,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponse changePassword(Long id, ChangePasswordRequest changePasswordRequest) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
@@ -120,6 +127,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponse changeRole(Long id, ChangeRoleRequest changeRoleRequest) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
@@ -132,6 +140,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long id) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());

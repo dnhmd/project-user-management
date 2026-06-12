@@ -23,7 +23,8 @@ spring:
 
 # Security Settings
 security:
-  secret-key: ${SECRET_KEY:change-me-in-production}
+  secret-key: ${SECRET_KEY:change-me-in-production-must-be-32chars}
   access-token-expire-minutes: 30
   algorithm: "HS256"
   password-reset-token-expire-minutes: 10
+  refresh-token-expire-days: 7
