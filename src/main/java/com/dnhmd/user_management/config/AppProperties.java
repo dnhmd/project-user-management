@@ -14,4 +14,6 @@ public class AppProperties {
     private String name;
     private Boolean debug;
     private String environment;
+    private String adminEmail;
+    private String adminPassword;
 }

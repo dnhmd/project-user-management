@@ -3,6 +3,8 @@ app:
   name: user-management
   debug: true
   environment: development
+  admin-email: ${ADMIN_EMAIL:admin@app.com}
+  admin-password: ${ADMIN_PASSWORD:AdminPassword123}
 
 # Database Settings
 spring:
