@@ -6,9 +6,11 @@ import com.dnhmd.user_management.entity.User;
 import com.dnhmd.user_management.exception.BadRequestException;
 import com.dnhmd.user_management.exception.ConflictException;
 import com.dnhmd.user_management.exception.ResourceNotFoundException;
+import com.dnhmd.user_management.exception.UnauthorizedException;
 import com.dnhmd.user_management.mapper.UserMapper;
 import com.dnhmd.user_management.repository.RoleRepository;
 import com.dnhmd.user_management.repository.UserRepository;
+import com.dnhmd.user_management.security.SecurityUtils;
 import com.dnhmd.user_management.service.UserService;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -58,9 +60,11 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     @Transactional
-    public UserResponse getUser(Long id) {
+    public UserResponse getUser(Long id, String currentUserEmail) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
+        if (!user.get().getEmail().equals(currentUserEmail) && !SecurityUtils.isCurrentUserAdmin())
+            throw new UnauthorizedException("Access denied");
 
         return UserMapper.toUserResponse(user.get());
     }
@@ -99,9 +103,11 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     @Transactional
-    public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest) {
+    public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest, String currentUserEmail) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
+        if (!user.get().getEmail().equals(currentUserEmail))
+            throw new UnauthorizedException("Access denied");
         if (updateUserRequest.getName() != null) user.get().setName(updateUserRequest.getName());
         if (updateUserRequest.getEmail() != null) user.get().setEmail(updateUserRequest.getEmail());
         if (updateUserRequest.getName() == null && updateUserRequest.getEmail() == null)
@@ -113,9 +119,11 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     @Transactional
-    public UserResponse changePassword(Long id, ChangePasswordRequest changePasswordRequest) {
+    public UserResponse changePassword(Long id, ChangePasswordRequest changePasswordRequest, String currentUserEmail) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
+        if (!user.get().getEmail().equals(currentUserEmail))
+            throw new UnauthorizedException("Access denied");
         if (!isPasswordVerified(changePasswordRequest.getOldPassword(), user.get().getHashedPassword()))
             throw new BadRequestException("Invalid credentials");
 
@@ -141,9 +149,11 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     @Transactional
-    public void deleteUser(Long id) {
+    public void deleteUser(Long id, String currentUserEmail) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) throw new ResourceNotFoundException("User", id.toString());
+        if (!user.get().getEmail().equals(currentUserEmail))
+            throw new UnauthorizedException("Access denied");
         user.get().setIsActive(false);
         User deletedUser = userRepository.saveAndFlush(user.get());
 

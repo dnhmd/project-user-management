@@ -1,6 +1,7 @@
 package com.dnhmd.user_management.controller;
 
 import com.dnhmd.user_management.dto.*;
+import com.dnhmd.user_management.security.SecurityUtils;
 import com.dnhmd.user_management.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,8 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UserResponse getUser(@PathVariable Long id) {
-        return userService.getUser(id);
+        String currentUserEmail = SecurityUtils.getCurrentUserEmail();
+        return userService.getUser(id, currentUserEmail);
     }
 
     @PostMapping
@@ -41,7 +43,8 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody UpdateUserRequest updateUserRequest
             ) {
-        return userService.updateUser(id, updateUserRequest);
+        String currentUserEmail = SecurityUtils.getCurrentUserEmail();
+        return userService.updateUser(id, updateUserRequest, currentUserEmail);
     }
 
     @PatchMapping("/{id}/password")
@@ -49,7 +52,8 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody ChangePasswordRequest changePasswordRequest
             ) {
-        return userService.changePassword(id, changePasswordRequest);
+        String currentUserEmail = SecurityUtils.getCurrentUserEmail();
+        return userService.changePassword(id, changePasswordRequest, currentUserEmail);
     }
 
     @PatchMapping("/{id}/role")
@@ -63,7 +67,8 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+        String currentUserEmail = SecurityUtils.getCurrentUserEmail();
+        userService.deleteUser(id, currentUserEmail);
         return ResponseEntity.noContent().build();
     }
 }
