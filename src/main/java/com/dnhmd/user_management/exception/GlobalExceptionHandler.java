@@ -3,8 +3,10 @@ package com.dnhmd.user_management.exception;
 import com.dnhmd.user_management.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -47,13 +49,14 @@ public class GlobalExceptionHandler {
         ), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
+    @ExceptionHandler({UnauthorizedException.class, AuthenticationException.class})
     public ResponseEntity<ErrorResponse> handleUnauthorizedException(Exception ex, WebRequest request) {
+        String message = (ex instanceof BadCredentialsException) ? "Invalid credentials" : "Unauthorized access";
         return new ResponseEntity<>(new ErrorResponse(
                 Instant.now(),
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                ex.getMessage(),
+                message,
                 request.getDescription(false)
         ), HttpStatus.UNAUTHORIZED);
     }
@@ -69,8 +72,8 @@ public class GlobalExceptionHandler {
         ), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAuthorizationDeniedException(AuthorizationDeniedException ex, WebRequest request) {
+    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
+    public ResponseEntity<ErrorResponse> handleAuthorizationDeniedException(Exception ex, WebRequest request) {
         return new ResponseEntity<>(new ErrorResponse(
                 Instant.now(),
                 HttpStatus.FORBIDDEN.value(),
