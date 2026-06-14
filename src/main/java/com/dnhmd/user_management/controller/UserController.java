@@ -4,6 +4,7 @@ import com.dnhmd.user_management.dto.*;
 import com.dnhmd.user_management.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +15,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public PagedResponse<UserResponse> getUsers(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer limit,
@@ -29,6 +31,7 @@ public class UserController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse createUser(@RequestBody CreateUserRequest createUserRequest) {
         return userService.createUser(createUserRequest);
     }
@@ -50,6 +53,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse changeRole(
             @PathVariable Long id,
             @RequestBody ChangeRoleRequest changeRoleRequest
