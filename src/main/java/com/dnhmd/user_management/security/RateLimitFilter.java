@@ -1,24 +1,30 @@
 package com.dnhmd.user_management.security;
 
+import com.dnhmd.user_management.exception.RateLimitException;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    ConcurrentHashMap<String, Bucket> stringBucketConcurrentHashMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Bucket> stringBucketConcurrentHashMap = new ConcurrentHashMap<>();
+
+    @Autowired
+    @Qualifier("handlerExceptionResolver")
+    private HandlerExceptionResolver resolver;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -28,9 +34,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
         } else {
-            response.setStatus(429);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"message\": \"Too many requests\"}");
+            resolver.resolveException(request, response, null, new RateLimitException("Too many requests sent to the server"));
         }
     }
 
