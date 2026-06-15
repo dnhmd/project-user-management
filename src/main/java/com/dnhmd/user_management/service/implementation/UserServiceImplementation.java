@@ -155,9 +155,7 @@ public class UserServiceImplementation implements UserService {
         if (!user.get().getEmail().equals(currentUserEmail))
             throw new UnauthorizedException("Access denied");
         user.get().setIsActive(false);
-        User deletedUser = userRepository.saveAndFlush(user.get());
-
-        UserMapper.toUserResponse(deletedUser);
+        userRepository.saveAndFlush(user.get());
     }
 
     private Boolean isPasswordVerified(String providedPassword, String currentPassword) {
