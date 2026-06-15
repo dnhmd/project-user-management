@@ -43,7 +43,7 @@ public class UserController {
     public UserResponse updateUser(
             @PathVariable Long id,
             @RequestBody @Valid UpdateUserRequest updateUserRequest
-            ) {
+    ) {
         String currentUserEmail = SecurityUtils.getCurrentUserEmail();
         return userService.updateUser(id, updateUserRequest, currentUserEmail);
     }
@@ -52,7 +52,7 @@ public class UserController {
     public UserResponse changePassword(
             @PathVariable Long id,
             @RequestBody @Valid ChangePasswordRequest changePasswordRequest
-            ) {
+    ) {
         String currentUserEmail = SecurityUtils.getCurrentUserEmail();
         return userService.changePassword(id, changePasswordRequest, currentUserEmail);
     }

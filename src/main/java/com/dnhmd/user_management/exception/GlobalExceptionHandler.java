@@ -25,8 +25,7 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                ex.getMessage(),
-                request.getDescription(false)
+                ex.getMessage()
         ), HttpStatus.BAD_REQUEST);
     }
 
@@ -36,8 +35,7 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage(),
-                request.getDescription(false)
+                ex.getMessage()
         ), HttpStatus.CONFLICT);
     }
 
@@ -47,8 +45,7 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
-                ex.getMessage(),
-                request.getDescription(false)
+                ex.getMessage()
         ), HttpStatus.NOT_FOUND);
     }
 
@@ -59,8 +56,7 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                message,
-                request.getDescription(false)
+                message
         ), HttpStatus.UNAUTHORIZED);
     }
 
@@ -70,8 +66,7 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                "Invalid credentials",
-                request.getDescription(false)
+                "Invalid credentials"
         ), HttpStatus.UNAUTHORIZED);
     }
 
@@ -81,8 +76,7 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
-                "Access denied",
-                request.getDescription(false)
+                "Access denied"
         ), HttpStatus.FORBIDDEN);
     }
 
@@ -98,8 +92,7 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                message,
-                request.getDescription(false)
+                message
         ), HttpStatus.BAD_REQUEST);
     }
 
@@ -109,8 +102,7 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.TOO_MANY_REQUESTS.value(),
                 HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
-                "Too Many Requests",
-                request.getDescription(false)
+                "Too Many Requests"
         ), HttpStatus.TOO_MANY_REQUESTS);
     }
 
@@ -121,8 +113,7 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "Internal Server Error",
-                request.getDescription(false)
+                "Internal Server Error"
         ), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
