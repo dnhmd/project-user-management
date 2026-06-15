@@ -1,5 +1,7 @@
 package com.dnhmd.user_management.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +13,11 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ResetPasswordRequest {
 
+    @NotBlank(message = "Token is required")
     private String token;
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,20}$",
+            message = "Password must be 8-20 characters long, contain at least one uppercase letter, one lowercase letter, one digit, and one special character (@$!%*?&)"
+    )
     private String newPassword;
 }
