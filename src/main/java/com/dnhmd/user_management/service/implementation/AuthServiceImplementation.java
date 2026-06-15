@@ -4,6 +4,7 @@ import com.dnhmd.user_management.config.SecurityProperties;
 import com.dnhmd.user_management.dto.*;
 import com.dnhmd.user_management.entity.RefreshToken;
 import com.dnhmd.user_management.entity.User;
+import com.dnhmd.user_management.exception.BadRequestException;
 import com.dnhmd.user_management.exception.ResourceNotFoundException;
 import com.dnhmd.user_management.repository.RefreshTokenRepository;
 import com.dnhmd.user_management.repository.UserRepository;
@@ -87,6 +88,8 @@ public class AuthServiceImplementation implements AuthService {
         RefreshToken currentRefreshToken = refreshTokenRepository.findByToken(refreshTokenRequest.getRefreshToken())
                 .orElseThrow(() -> new ResourceNotFoundException("Refresh token", refreshTokenRequest.getRefreshToken()));
         User user = currentRefreshToken.getUser();
+        if (currentRefreshToken.getExpiresAt().isBefore(LocalDateTime.now()))
+            throw new BadRequestException("Refresh token expired. Please login again.");
         revokeRefreshToken(currentRefreshToken);
         String accessToken = jwtService.generateAccessToken(user.getEmail());
         RefreshToken refreshToken = refreshTokenRepository.saveAndFlush(
@@ -122,9 +125,9 @@ public class AuthServiceImplementation implements AuthService {
     public MessageResponse resetPassword(ResetPasswordRequest resetPasswordRequest) {
         String passwordResetToken = resetPasswordRequest.getToken();
         User user = userRepository.findByPasswordResetToken(passwordResetToken)
-                .orElseThrow(() -> new BadCredentialsException("Password reset token unavailable"));
+                .orElseThrow(() -> new BadRequestException("Password reset token unavailable"));
         if (user.getPasswordResetTokenExpiresAt().isBefore(LocalDateTime.now()))
-            throw new BadCredentialsException("Password reset token expired");
+            throw new BadRequestException("Password reset token expired");
         String hashedPassword = passwordEncoder.encode(resetPasswordRequest.getNewPassword());
         user.setHashedPassword(hashedPassword);
         user.setPasswordResetToken(null);
@@ -134,11 +137,19 @@ public class AuthServiceImplementation implements AuthService {
         return new MessageResponse("Password reset is successful");
     }
 
+    @Override
+    @Transactional
+    public MessageResponse logout(RefreshTokenRequest refreshTokenRequest) {
+        RefreshToken currentRefreshToken = refreshTokenRepository.findByToken(refreshTokenRequest.getRefreshToken())
+                .orElseThrow(() -> new ResourceNotFoundException("Refresh token", refreshTokenRequest.getRefreshToken()));
+        revokeRefreshToken(currentRefreshToken);
+
+        return new MessageResponse("Logout is successful");
+    }
+
     private void revokeRefreshToken(RefreshToken refreshToken) {
-        if (refreshToken.getExpiresAt().isBefore(LocalDateTime.now()))
-            throw new BadCredentialsException("Refresh token expired. Please login again.");
         if (refreshToken.getIsRevoked())
-            throw new BadCredentialsException("Refresh token revoked already. Please login again.");
+            throw new BadRequestException("Refresh token revoked already. Please login again.");
         refreshToken.setIsRevoked(true);
         refreshTokenRepository.saveAndFlush(refreshToken);
     }

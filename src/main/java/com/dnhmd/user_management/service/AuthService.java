@@ -9,4 +9,5 @@ public interface AuthService {
     TokenResponse refreshToken(RefreshTokenRequest refreshTokenRequest);
     MessageResponse forgotPassword(ForgotPasswordRequest forgotPasswordRequest);
     MessageResponse resetPassword(ResetPasswordRequest resetPasswordRequest);
+    MessageResponse logout(RefreshTokenRequest refreshTokenRequest);
 }
