@@ -4,7 +4,7 @@ app:
   debug: true
   environment: development
   admin-email: ${ADMIN_EMAIL:admin@app.com}
-  admin-password: ${ADMIN_PASSWORD:AdminPassword123}
+  admin-password: ${ADMIN_PASSWORD:Admin@Password123}
 
 # Database Settings
 spring:
